@@ -1,0 +1,10 @@
+To do:
+1) create each individual country UK, BE, DE
+2) Check correct shapefiles for EUFL
+3) Get river system shapefiles
+4) Add quick Manual join
+5) Build a test case: Show how to update this. What would we need to update Japan Typhoon
+6) Other functions?
+7) Waterfalls. Can we create a loop that automates good looking plots (excel style). Using python?
+8) EUFL diagnostic tool
+9) Python APIs for RMS(one)?   Web automation?

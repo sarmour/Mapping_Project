@@ -75,6 +75,43 @@ def SetupPerilsEUWS(maptype):
             except:
                 print "Was not able to copy over ", os.path.basename(fl)
 
+def SetupPerilsEUFL(maptype):
+    """ Moves the RMS MXD template and shapefiles from the GRM drive to the local drive. MXD location is hardcoded. Maptype options = 'CRESTA' or 'POST'"""
+    destmxddir = "C:\Mapping_Project\MXDs"
+    destSHPdir = "C:\Mapping_Project\Shapefiles"
+
+    SetupSymb()
+    if maptype == 'CRESTA':
+        try:
+            shutil.copy2(r"\\ca1ntap01\grm\PAT\ArcMappingTool\MXDs\EUFL\EUFL_CRESTA.mxd",destmxddir)
+        except:
+            if os.path.exists("C:\Mapping_Project\MXDs\EUFL_CRESTA.mxd") :
+                    print "The EUFL map already exists on your local machine."
+            else:
+                print "Error with SetupPerilsEUFL"
+
+        for fl in glob(r"\\ca1ntap01\grm\PAT\ArcMappingTool\Shapefiles\EUFL_CRESTA\*"):
+            try:
+                shutil.copy2(fl,destSHPdir)
+            except:
+                print "Was not able to copy over ", os.path.basename(fl)
+    if maptype == 'POST':
+        try:
+            shutil.copy2(r"\\ca1ntap01\grm\PAT\ArcMappingTool\MXDs\EUFL\EUFL_Postcode.mxd",destmxddir)
+        except:
+            if os.path.exists("C:\Mapping_Project\MXDs\EUFL_Postcode.mxd") :
+                    print "The EUFL map already exists on your local machine."
+            else:
+                print "Error with SetupPerilsEUFL"
+
+        for fl in glob(r"\\ca1ntap01\grm\PAT\ArcMappingTool\Shapefiles\EUFL_Postcode\*"):
+            try:
+                shutil.copy2(fl,destSHPdir)
+            except:
+                print "Was not able to copy over ", os.path.basename(fl)
+
+
+
 def GetCSVcols(csvfile):
     """ Returns a list of the CSV headers."""
     with open(csvfile, 'rb') as csv:
