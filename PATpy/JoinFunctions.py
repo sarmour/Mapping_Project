@@ -27,7 +27,7 @@ def CreateWorkspace():
     """ This function will check if a .gbp workspace exists. If there is not one, the script will make one. This script returns the path of the workspace. The .gbp workspace is useful for working with csv data"""
     path = 'C:\\Mapping_Project\\workspace.gdb'
     if not os.path.exists('C:\\Mapping_Project\\workspace.gdb'):
-        arcpy.CreateFileGDB_management(path, 'workspace.gdb')
+        arcpy.CreateFileGDB_management('C:\\Mapping_Project\\', 'workspace.gdb')
     else:
         print 'you already have a workspace there'
     return  path
@@ -35,6 +35,8 @@ def CreateWorkspace():
 def SetupSymb():
     """This function creates local copies of symbology. """
     destsymbdir = "C:\Mapping_Project\MXDs\Symbology"
+    if not os.path.exists("C:\Mapping_Project\MXDs\Symbology"):
+        os.mkdir("C:\Mapping_Project\MXDs\Symbology")
     if not os.path.exists("C:\Mapping_Project\MXDs\Symbology\PercentChange.lyr"):
         for fl in glob(r"\\ca1ntap01\grm\PAT\ArcMappingTool\Symbology\PercentChange\\*"):
             shutil.copy2(fl,destsymbdir)
@@ -165,6 +167,8 @@ def CheckMissingSHPVals(csvfile,joincol, shpfile, shpfileheader):
     for val in csvvals:
         if val not in shpvals:
             results.append(val)
+    if results == []:
+        print "All values were joined"
     return results
 
 def GetMXDList():
