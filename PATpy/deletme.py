@@ -16,21 +16,29 @@
 import sys
 import csv
 import operator
+import os
+import arcpy
 
-csvfile =  "C:\Mapping_Project\TestPC.csv"
-reader = csv.reader(open(csvfile), delimiter=",")
-i = 0
-for l in reader:
-    i +=1
-    if i <10 :
-        print l
-    else:
-        break
-sortedlist = sorted(reader, key=operator.itemgetter(0))
+shpfile =  "C:\Mapping_Project\Shapefiles\EUWS2011_CRESTAwJoinCol - copy.shp"
 
-# with open(csvfile) as csvfile:
-#     for l in csvfile:
-#         print l
-for l in sortedlist[:10]:
-    print l
-
+sort_field = "RMS_CRESTA"
+method = "D"
+L = []
+vals = []
+# i = 0
+# for field in arcpy.ListFields(shpfile):
+#     rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (sort_field, method))
+#     for row in rows:
+#         # print field.name, row.getValue(field.name)
+#         vals.append(row.getValue(field.name))
+#     if i == 0:
+#         L = vals
+#     else:
+#         L = zip(L,vals)
+#     i +=1
+# print L
+a = [1,2,3]
+b = [4,5,6]
+c = [7,8,9]
+newlist =  zip (a,b)
+print "".join(newlist)

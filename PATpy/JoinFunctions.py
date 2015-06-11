@@ -5,6 +5,7 @@ import arcpy
 from shutil import copy
 from glob import glob
 import shutil
+import operator
 
 def CreateDirs():
     """Creates a folder directory on the C drive called Mapping_Project. Following this function, run the movePeril() function to create a local copy of MXDs and shapefiles."""
@@ -123,6 +124,29 @@ def ReadCSV(csvfile):
     with open(csvfile) as csv:
         for l in csv:
             print l
+
+def SortCSV(csvfile, colindex = 0, reverse = False):
+    """ This script will sort a csv based on the colindex and csvfile path. If reverse is True, the values will be sorted in reverse index. This function assumes that the csv has headers. colindex starts at 0"""
+    data = []
+    with open(csvfile,'r') as f:
+        for line in f:
+            data.append(line)
+
+    header = csv.reader(data, delimiter=",").next()
+    reader = csv.reader(data[1:], delimiter=",")
+
+    if reverse is True:
+        sortedlist = sorted(reader, key=operator.itemgetter(colindex),reverse = True)
+    else:
+        sortedlist = sorted(reader, key=operator.itemgetter(colindex))
+    os.remove(csvfile)
+    ResultFile = open(csvfile,'wb')
+    wr = csv.writer(ResultFile)
+    wr.writerow(header)
+    for l in sortedlist:
+        wr.writerow(l)
+    ResultFile.close()
+    print "Finished sorting the csv"
 
 def GetSHPcols(shapefile):
     """ This code returns a list version of Arcpy.ListFields(shapefile). I added this code to easily list fields without using Arcpy explicitly."""
