@@ -24,54 +24,118 @@ for col in cols:
     i +=1
 
 PATpy.AddSHPcols(shpfile, newcols, "double")
-rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (shp_join_col, method))
 i = 0
 ct = 0
+csvjoinlist = []
 
 with open(csvfile, 'rb') as csvfile:
-    csvjoinlist = []
-    csvjoincols = []
+    lib = dict()
+    csvfile.next() #scip the headers
     for l in csvfile:
-        csvjoinlist.append(l.rstrip().split(','))
-        csvjoincols.append(l.rstrip().split(',')[csvjoinindex])
-    csvfile.seek(0) #return to start of iterator
-    csvfile.next() #skip the headers
-    for row in rows:
-        JOINVAL = str(row.getValue(shp_join_col))
-        vals = csvfile.next().rstrip().split(',') #go to next line and parse it to a list
-        fieldindex = csvfieldindex
-        # print vals[csvjoinindex], JOINVAL
-        if str(vals[csvjoinindex]) == JOINVAL:
-            print "here 1", vals[csvjoinindex], JOINVAL
-            for field in newcols:
-                row.setValue(field,vals[fieldindex])
-                rows.updateRow(row)
-                fieldindex += 1
-            ct +=1
-        elif JOINVAL in csvjoincols:
-            for vals in csvjoinlist:
-                if vals[csvjoinindex] == JOINVAL:
-                    print "here 2", vals[csvjoinindex], JOINVAL
-                    for field in newcols:
-                        row.setValue(field,vals[fieldindex])
-                        rows.updateRow(row)
-                        fieldindex += 1
-                    i +=1
-                    csvfile.seek(vals.tell())
-                    break
+        line = l.rstrip().split(",")
+        csvjoinlist.append(line[csvjoinindex])
+        lib[line[csvjoinindex]] = lib.get(line[csvjoinindex],line[csvfieldindex:])
+
+rows = arcpy.UpdateCursor(shpfile)
+#rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (shp_join_col, method)) ##sorted
+shpjoinlist = []
+missingshpvals = []
+for row in rows:
+    shpjoinval = str(row.getValue(shp_join_col))
+    shpjoinlist.append(shpjoinval)
+    try:
+        vals = lib.get(shpjoinval)
+        for ind, field in enumerate(newcols):
+            row.setValue(str(field),float(vals[ind]))
+            rows.updateRow(row)
+    except:
+        missingshpvals.append(shpjoinval) #This is the shapefile value that there is no corresponding CSV value for. This list is helpful for debugging.
+missingcsvvals = []
+for l in csvjoinlist:
+    if l not in shpjoinlist:
+        missingcsvvals.append(l)
+
+print "Missed shp values ".join(missingshpvals)
+print "Missing csv values ".join(missingcsvvals)
+
+
+
+
+
+# with open(csvfile, 'rb') as csvfile:
+#     csvtxt = []
+#     for l in csvfile:
+#         csvtxt.append(l.rstrip().split(','))
+
+#     for l in csvtxt[1:10]:
+#         csvjoinval = l[csvjoinindex]
+#         rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (shp_join_col, method))
+#         for row in rows:
+#             shpjoinval = str(row.getValue(shp_join_col))
+#             print csvjoinval, shpjoinval
+#             break
+#         break
+    # for row in rows:
+    #     JOINVAL = str(row.getValue(shp_join_col))
+    #     vals = csvfile.next().rstrip().split(',') #go to next line and parse it to a list
+    #     fieldindex = csvfieldindex
+    #     # print vals[csvjoinindex], JOINVAL
+    #     if str(vals[csvjoinindex]) == JOINVAL:
+    #         print "here 1", vals[csvjoinindex], JOINVAL
+    #         for field in newcols:
+    #             row.setValue(field,vals[fieldindex])
+    #             rows.updateRow(row)
+    #             fieldindex += 1
+    #         ct +=1
+    #     elif JOINVAL in csvjoincols:
+    #         for vals in csvjoinlist:
+    #             if vals[csvjoinindex] == JOINVAL:
+    #                 print "here 2", vals[csvjoinindex], JOINVAL
+    #                 for field in newcols:
+    #                     row.setValue(field,vals[fieldindex])
+    #                     rows.updateRow(row)
+    #                     fieldindex += 1
+    #                 i +=1
+    #                 csvfile.seek(vals.tell())
+    #                 break
+
+
+
+# rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (shp_join_col, method))
+# with open(csvfile, 'rb') as csvfile:
+#     csvjoinlist = []
+#     csvjoincols = []
+#     for l in csvfile:
+#         csvjoinlist.append(l.rstrip().split(','))
+#         csvjoincols.append(l.rstrip().split(',')[csvjoinindex])
+#     csvfile.seek(0) #return to start of iterator
+#     csvfile.next() #skip the headers
+#     for row in rows:
+#         JOINVAL = str(row.getValue(shp_join_col))
+#         vals = csvfile.next().rstrip().split(',') #go to next line and parse it to a list
+#         fieldindex = csvfieldindex
+#         # print vals[csvjoinindex], JOINVAL
+#         if str(vals[csvjoinindex]) == JOINVAL:
+#             print "here 1", vals[csvjoinindex], JOINVAL
+#             for field in newcols:
+#                 row.setValue(field,vals[fieldindex])
+#                 rows.updateRow(row)
+#                 fieldindex += 1
+#             ct +=1
+#         elif JOINVAL in csvjoincols:
+#             for vals in csvjoinlist:
+#                 if vals[csvjoinindex] == JOINVAL:
+#                     print "here 2", vals[csvjoinindex], JOINVAL
+#                     for field in newcols:
+#                         row.setValue(field,vals[fieldindex])
+#                         rows.updateRow(row)
+#                         fieldindex += 1
+#                     i +=1
+#                     csvfile.seek(vals.tell())
+#                     break
 
 ##############Can i use tell and seek???#######################
 ##############Can i use set to only get matching vals and improve the process###############
-
-
-    print "In a row", ct
-    print "Not in a row", i
-
-
-
-
-
-
 
 
 
