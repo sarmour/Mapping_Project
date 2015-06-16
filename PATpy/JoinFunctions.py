@@ -183,6 +183,7 @@ def AddSHPcols(shapefile, cols, datatype):
     If you try to add a duplicate column that is already in the shapefile, the existing duplicate column will be deleted."""
     for col in cols:
         if arcpy.ListFields(shapefile, col[:10]):
+            print 'Removed existing column from the shapefile:', col
             arcpy.DeleteField_management(shapefile, col)
             arcpy.AddField_management(shapefile, col, datatype)
         else:
@@ -297,3 +298,26 @@ def CreateMaps(mxds,shplyr,mapfields,symbology):
                     arcpy.RefreshActiveView()
                     arcpy.mapping.ExportToJPEG(mxdobj, "C:\Mapping_Project\Out/"+ os.path.basename(mxd).rstrip('.mxd') +'_' + field + symbology +".jpg", resolution=mapresolution)
 
+def SortShapefile():
+    """This script is not working. It can grab all of the values in the dbf, but not update them..."""
+    pass
+
+    #     fields = arcpy.ListFields(shpfile)
+    # # for field in fields:
+    # #     print field.name
+
+    # newlst = []
+    # rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (sort_field, method))
+    # for row in rows:
+    #     vals = []
+    #     for field in fields:
+    #         vals.append(row.getValue(field.name))
+    #     newlst.append(vals)
+
+    # rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (sort_field, method))
+    # vals = newlst[0]
+    # for row in rows:
+    #     print row
+    #     print vals
+    #     rows.updateRow(vals[0])
+    #     vals = vals.next()

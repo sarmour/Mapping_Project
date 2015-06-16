@@ -1,6 +1,8 @@
 *.sublime-project
 *.sublime-workspace
 *.mxd
+*.jpg
+*.csv
 Shapefiles
 workspace.gdb
 Symbology
