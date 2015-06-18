@@ -7,4 +7,4 @@ To do:
 6) Other functions?
 7) Waterfalls. Can we create a loop that automates good looking plots (excel style). Using python?
 8) EUFL diagnostic tool
-9) Python APIs for RMS(one)?   Web automation?
+9) Python APIs?   Web automation?

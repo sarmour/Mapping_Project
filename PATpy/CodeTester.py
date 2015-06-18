@@ -4,32 +4,47 @@ import os
 PATpy = imp.load_source('PATpy', 'C:\Mapping_Project\PATpy\JoinFunctions.py')
 
 
-#### Set Up Workspace ###
+### Set Up Workspace ###
 
-#PATpy.CreateDirs()
-#workspace = PATpy.CreateWorkspace()
+# PATpy.CreateDirs()
+# workspace = PATpy.CreateWorkspace()
 # PATpy.SetupPerilsEUWS('CRESTA')
 # PATpy.SetupPerilsEUFL('POST')
-#SetupPerilsEUWS('POST')
+# SetupPerilsEUWS('POST')
 
-# # #########################
+# #########################Set up variables################################
 # workspace = "C:\Mapping_Project\workspace.gdb"
-# shpfile =  "C:\Mapping_Project\Shapefiles\EUWS2011_CRESTAwJoinCol.shp"
-# csvfile =  "C:\Mapping_Project\TestCRESTA.csv"
+shpfile =  "C:\Mapping_Project\Shapefiles\EUFL_RL15_Zips.shp"
+shp_join_col = "JOIN"
 
-# # csvcols = PATpy.GetCSVcols(csvfile)
-# # print csvcols
+csvfile =  "C:\Mapping_Project\TestPC.csv"
+csvjoinindex = 0
+csvfieldindex = 1
+
+
+##########################JOIN OPTIONS######################################
+
+# csvcols = PATpy.GetCSVcols(csvfile)
+# print csvcols
 
 # mappingcols = ['Haz','Vuln','Overall']
+shpcols = PATpy.GetSHPcols(shpfile)
+print shpcols
+# PATpy.RemoveSHPcols(shpfile, ['ISO3A', 'ISO3N', 'FIPS_1', 'CRESTA'])
+# # PATpy.AddSHPcols(shpfile, "JOIN", "STRING")
+# PATpy.CalculateField(shpfile, "JOIN", "!RMSCODE! + '_' + str(!POST!)")
 
-# shpcols = PATpy.GetSHPcols(shpfile)
-
-# print shpcols
-
-# jointable = PATpy.JoinCSV(csvfile, workspace)
+# # jointable = PATpy.JoinCSV(csvfile, workspace)
 # PATpy.JoinSHP(jointable,"POSTCODE",shpfile,'RMS_CRESTA',mappingcols) #this process can take a while
 # print PATpy.CheckMissingSHPVals(csvfile,0, shpfile, 'RMS_CRESTA')
 
+
+PATpy.Join_CSV_to_SHP(csvfile, shpfile, shp_join_col, csvjoinindex, csvfieldindex)
+
+
+# missingresults2 = PATpy.CheckMissingSHPVals(csvfile,0, shpfile, 'JOIN')
+
+# print missingresults2
 
 
 # mxdlist = PATpy.GetMXDList()[0]
@@ -42,49 +57,6 @@ PATpy = imp.load_source('PATpy', 'C:\Mapping_Project\PATpy\JoinFunctions.py')
 
 # # ##PATpy.CreateMaps(mxdlist,lyr,mappingcols,"Diff_LC")
 # PATpy.CreateMaps(mxdlist,lyr,mappingcols,"Percent_Change")
-
-
-
-csvjoinindex = 0
-csvfieldindex = 1
-cols = PATpy.GetCSVcols(csvfile)
-i = 0
-newcols = []
-for col in cols:
-    if i >= csvfieldindex:
-        newcols.append(col)
-    i +=1
-
-PATpy.AddSHPcols(shpfile, newcols, "double")
-
-
-rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (shp_join_col, method))
-
-for row in rows:
-    JOINVAL = row.getValue(shp_join_col)
-    fieldindex = csvfieldindex
-
-    with open(csvfile, 'rb') as csv:
-        try:
-            vals = csv.strip().split(",").next()
-            print vals
-            if vals [csvjoinindex] == JOINVAL:
-                    print vals[csvjoinindex], JOINVAL
-                    for field in newcols:
-                        row.setValue(field,vals[fieldindex])
-                        rows.updateRow(row)
-                        fieldindex += 1
-        except:
-            print "here"
-            for line in csv:
-                vals = line.strip().split(",")
-                if vals [csvjoinindex] == JOINVAL:
-                    # print vals[csvjoinindex], JOINVAL
-                    for field in newcols:
-                        row.setValue(field,vals[fieldindex])
-                        rows.updateRow(row)
-                        fieldindex += 1
-                    break
 
 
 

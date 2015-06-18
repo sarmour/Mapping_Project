@@ -1,4 +1,6 @@
 #Embedded file name: C:/Mapping_Project\Scripts\ShapefileCodes.py
+###Developed by Shane Armour###
+
 import os
 from numpy import genfromtxt, loadtxt
 import arcpy
@@ -182,8 +184,18 @@ def AddSHPcols(shapefile, cols, datatype):
         RASTER Raster images. All ArcGIS software-supported raster dataset formats can be stored, but it is highly recommended that only small images be used.
         GUID Globally unique identifier.
     If you try to add a duplicate column that is already in the shapefile, the existing duplicate column will be deleted."""
-    for col in cols:
-        col = col[:10]
+    if type(cols) is list:
+        for col in cols:
+            col = col[:10]
+            if arcpy.ListFields(shapefile, col):
+                print 'Removed existing column from the shapefile:', col
+                arcpy.DeleteField_management(shapefile, col)
+                arcpy.AddField_management(shapefile, col, datatype)
+            else:
+                arcpy.AddField_management(shapefile, col, datatype)
+            print 'Added column to the shapefile:', col, datatype
+    else:
+        col = cols[:10]
         if arcpy.ListFields(shapefile, col):
             print 'Removed existing column from the shapefile:', col
             arcpy.DeleteField_management(shapefile, col)
@@ -195,6 +207,52 @@ def AddSHPcols(shapefile, cols, datatype):
 
 
 
+def Join_CSV_to_SHP(csvfile, shapefile, shapefilejoincol, csvjoinindex, csvfieldindex):
+    """ This function manually joins the CSV to the shapefile and does not use geodatabase tables like the JoinCSV() and JoinSHP() functions. This method should be easier and faster in most cases. In the CSV, the join column must be before the columns with mapping values. This code will map all fields from the mapping column onward (to the right). Returns missing cols. Column limit should be 10 characters."""
+
+    cols = GetCSVcols(csvfile)
+
+    i = 0
+    newcols = []
+    for col in cols:
+        if i >= csvfieldindex:
+            newcols.append(col[:10])
+        i +=1
+
+    AddSHPcols(shapefile, newcols, "double")
+    i = 0
+    ct = 0
+    csvjoinlist = []
+
+    with open(csvfile, 'rb') as csvfile:
+        lib = dict()
+        csvfile.next() #scip the headers
+        for l in csvfile:
+            line = l.rstrip().split(",")
+            csvjoinlist.append(line[csvjoinindex])
+            lib[line[csvjoinindex]] = lib.get(line[csvjoinindex],line[csvfieldindex:])
+
+    rows = arcpy.UpdateCursor(shapefile)
+    #rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (shapefilejoincol, method)) ##sorted
+    shpjoinlist = []
+    missingshpvals = []
+    for row in rows:
+        shpjoinval = str(row.getValue(shapefilejoincol))
+        shpjoinlist.append(shpjoinval)
+        if shpjoinval in csvjoinlist: ##Need to test if these increases or reduces runtime
+            try:
+                vals = lib.get(shpjoinval)
+                for ind, field in enumerate(newcols):
+                    row.setValue(str(field),float(vals[ind]))
+                    rows.updateRow(row)
+            except:
+                missingshpvals.append(shpjoinval) #This is the shapefile value that there is no corresponding CSV value for. This list is for debugging.
+    missingcsvvals = []
+    for l in csvjoinlist:
+        if l not in shpjoinlist:
+            missingcsvvals.append(l)
+
+    return missingcsvvals #these values are missing
 
 def JoinCSV(csvfile, workspace):
     """ This function will import the csv to the workspace. This datatable will then be imported to a shapefile using the JoinSHP() function. This returns a string of the workspace and table name"""
@@ -302,6 +360,12 @@ def CreateMaps(mxds,shplyr,mapfields,symbology):
                     lyr.symbology.valueField = field
                     arcpy.RefreshActiveView()
                     arcpy.mapping.ExportToJPEG(mxdobj, "C:\Mapping_Project\Out/"+ os.path.basename(mxd).rstrip('.mxd') +'_' + field + symbology +".jpg", resolution=mapresolution)
+
+
+def CalculateField(shapefile, fieldname, py_expression):
+    """Calculate values for a field given a python expression as a string."""
+    arcpy.CalculateField_management (shapefile, fieldname, py_expression,"Python")
+
 
 def SortShapefile():
     """This script is not working. It can grab all of the values in the dbf, but not update them..."""

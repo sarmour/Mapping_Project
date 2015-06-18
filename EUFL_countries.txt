@@ -1,0 +1,2 @@
+'GB','FR','BE','DE','CH','AT','CZ','PL','SK','HU'
+UK, france, belgium, germany, switzerland, austria, czech republic, poland, slovakia, hungary

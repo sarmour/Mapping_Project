@@ -11,55 +11,53 @@ PATpy = imp.load_source('PATpy', 'C:\Mapping_Project\PATpy\JoinFunctions.py')
 shpfile =  "C:\Mapping_Project\Shapefiles\RL13EUWS_PostCresta.shp"
 csvfile =  "C:\Mapping_Project\TestPC.csv"
 shp_join_col = "JOIN"
-#method = "A"
 csvjoinindex = 0
 csvfieldindex = 1
 
-cols = PATpy.GetCSVcols(csvfile)
+# cols = PATpy.GetCSVcols(csvfile)
 
 # PATpy.RemoveSHPcols(shpfile, cols)
 
-i = 0
-newcols = []
-for col in cols:
-    if i >= csvfieldindex:
-        newcols.append(col)
-    i +=1
+# i = 0
+# newcols = []
+# for col in cols:
+#     if i >= csvfieldindex:
+#         newcols.append(col)
+#     i +=1
 
-PATpy.AddSHPcols(shpfile, newcols, "double")
-i = 0
-ct = 0
-csvjoinlist = []
+# PATpy.AddSHPcols(shpfile, newcols, "double")
+# i = 0
+# ct = 0
+# csvjoinlist = []
 
-with open(csvfile, 'rb') as csvfile:
-    lib = dict()
-    csvfile.next() #scip the headers
-    for l in csvfile:
-        line = l.rstrip().split(",")
-        csvjoinlist.append(line[csvjoinindex])
-        lib[line[csvjoinindex]] = lib.get(line[csvjoinindex],line[csvfieldindex:])
+# with open(csvfile, 'rb') as csvfile:
+#     lib = dict()
+#     csvfile.next() #scip the headers
+#     for l in csvfile:
+#         line = l.rstrip().split(",")
+#         csvjoinlist.append(line[csvjoinindex])
+#         lib[line[csvjoinindex]] = lib.get(line[csvjoinindex],line[csvfieldindex:])
 
-rows = arcpy.UpdateCursor(shpfile)
-#rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (shp_join_col, method)) ##sorted
-shpjoinlist = []
-missingshpvals = []
-for row in rows:
-    shpjoinval = str(row.getValue(shp_join_col))
-    shpjoinlist.append(shpjoinval)
-    try:
-        vals = lib.get(shpjoinval)
-        for ind, field in enumerate(newcols):
-            row.setValue(str(field),float(vals[ind]))
-            rows.updateRow(row)
-    except:
-        missingshpvals.append(shpjoinval) #This is the shapefile value that there is no corresponding CSV value for. This list is helpful for debugging.
-missingcsvvals = []
-for l in csvjoinlist:
-    if l not in shpjoinlist:
-        missingcsvvals.append(l)
+# rows = arcpy.UpdateCursor(shpfile)
+# #rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (shp_join_col, method)) ##sorted
+# shpjoinlist = []
+# missingshpvals = []
+# for row in rows:
+#     shpjoinval = str(row.getValue(shp_join_col))
+#     shpjoinlist.append(shpjoinval)
+#     try:
+#         vals = lib.get(shpjoinval)
+#         for ind, field in enumerate(newcols):
+#             row.setValue(str(field),float(vals[ind]))
+#             rows.updateRow(row)
+#     except:
+#         missingshpvals.append(shpjoinval) #This is the shapefile value that there is no corresponding CSV value for. This list is helpful for debugging.
+# missingcsvvals = []
+# for l in csvjoinlist:
+#     if l not in shpjoinlist:
+#         missingcsvvals.append(l)
 
-print "Missed shp values ".join(missingshpvals)
-print "Missing csv values ".join(missingcsvvals)
+# print missingcsvvals
 
 
 
