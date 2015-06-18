@@ -239,14 +239,13 @@ def Join_CSV_to_SHP(csvfile, shapefile, shapefilejoincol, csvjoinindex, csvfield
     for row in rows:
         shpjoinval = str(row.getValue(shapefilejoincol))
         shpjoinlist.append(shpjoinval)
-        if shpjoinval in csvjoinlist: ##Need to test if these increases or reduces runtime
-            try:
-                vals = lib.get(shpjoinval)
-                for ind, field in enumerate(newcols):
-                    row.setValue(str(field),float(vals[ind]))
-                    rows.updateRow(row)
-            except:
-                missingshpvals.append(shpjoinval) #This is the shapefile value that there is no corresponding CSV value for. This list is for debugging.
+        try:
+            vals = lib.get(shpjoinval)
+            for ind, field in enumerate(newcols):
+                row.setValue(str(field),float(vals[ind]))
+                rows.updateRow(row)
+        except:
+            missingshpvals.append(shpjoinval) #This is the shapefile value that there is no corresponding CSV value for. This list is for debugging.
     missingcsvvals = []
     for l in csvjoinlist:
         if l not in shpjoinlist:
@@ -362,8 +361,58 @@ def CreateMaps(mxds,shplyr,mapfields,symbology):
                     arcpy.mapping.ExportToJPEG(mxdobj, "C:\Mapping_Project\Out/"+ os.path.basename(mxd).rstrip('.mxd') +'_' + field + symbology +".jpg", resolution=mapresolution)
 
 
+def CreateMaps2(mxds,shp1, shp2,mapfields,symbology):
+    """This function will create maps for all mxds specified and all fields in the mapfields list. The symbology options = 'Percent_Change' and 'Diff_LC'. If the symbology does not exist locally, this function will copy the necessary files from the network into the mxd\symbology folder. This function will show shplyr1's labels. The option expression field will update the labels. """
+
+    if type(mxds) is str:
+        newmxd = []
+        newmxd.append(mxds)
+        mxds = newmxd
+    if type(mapfields) is str:
+        newmapfields = []
+        newmapfields.append(mapfields)
+        mapfields = newmapfields
+
+    mapresolution = 300 #300 is common.
+
+    if symbology.lower() == "percent_change":
+        symbpath = arcpy.mapping.Layer("C:\Mapping_Project\MXDs\Symbology\PercentChange.lyr")
+    elif symbology.lower() == "diff_lc":
+        symbpath = arcpy.mapping.Layer('C:\Mapping_Project\MXDs\Symbology\DifferenceinLossCost.lyr')
+    else:
+        print "You need to choose a symbology type: 'Percent_Change' or 'Diff_LC'"
+        return
+    for mxd in mxds:
+        mxdobj = arcpy.mapping.MapDocument(mxd)
+        df = arcpy.mapping.ListDataFrames(mxdobj)[0] #leave as default for these maps(will it change for other perils????)
+        lyr1 = arcpy.mapping.Layer(shp1)
+        lyr1.symbologyType == "GRADUATED_COLORS"
+        lyr2 = arcpy.mapping.Layer(shp1)
+        lyr2.symbologyType == "GRADUATED_COLORS"
+
+        for field in mapfields:
+            arcpy.mapping.UpdateLayer(df, lyr1, symbpath, True) #if you get a value error, it could be because of the layers source symbology no longer being available. It could also be because of a join issue or duplicate columns
+            lyr1.symbology.valueField = field
+
+            if lyr1.supports("LABELCLASSES"):
+                lyr1.showLabels = True
+            # print "Layer name: " + lyr1.name
+            for lblClass in lyr1.labelClasses:
+                if symbology.lower() == "percent_change":
+                    lblClass.expression = "str(round(float(["+field+"]),0)) + '%'"
+                    # print "    Class Name:  " + lblClass.className
+                    # print "    Expression:  " + lblClass.expression
+                    # print "    SQL Query:   " + lblClass.SQLQuery
+            arcpy.mapping.UpdateLayer(df, lyr2, symbpath, True)
+            lyr2.symbology.valueField = field
+            lyr2.showLabels = False
+            arcpy.RefreshActiveView()
+            arcpy.mapping.ExportToJPEG(mxdobj, "C:\Mapping_Project\Out/"+ os.path.basename(mxd).rstrip('.mxd') +'_' + field + symbology +".jpg", resolution=mapresolution)
+
+
+
 def CalculateField(shapefile, fieldname, py_expression):
-    """Calculate values for a field given a python expression as a string."""
+    """Calculate values for a field given a python expression as a string. The py expression should be formatted with ! characters before and after the field name. ie.py_expression ='str(!POSTCODE!) + '_' + str(!JOIN!) """
     arcpy.CalculateField_management (shapefile, fieldname, py_expression,"Python")
 
 

@@ -15,6 +15,7 @@ PATpy = imp.load_source('PATpy', 'C:\Mapping_Project\PATpy\JoinFunctions.py')
 # #########################Set up variables################################
 # workspace = "C:\Mapping_Project\workspace.gdb"
 shpfile =  "C:\Mapping_Project\Shapefiles\EUFL_RL15_Zips.shp"
+shpfile1 =  "C:\Mapping_Project\Shapefiles\EUFL_RL15_RiverZips.shp"
 shp_join_col = "JOIN"
 
 csvfile =  "C:\Mapping_Project\TestPC.csv"
@@ -24,10 +25,10 @@ csvfieldindex = 1
 
 ##########################JOIN OPTIONS######################################
 
-# csvcols = PATpy.GetCSVcols(csvfile)
-# print csvcols
+csvcols = PATpy.GetCSVcols(csvfile)
+print csvcols
 
-# mappingcols = ['Haz','Vuln','Overall']
+mappingcols = ['GU_Haz', 'GU_Vuln', 'GU_PLA_Win', 'GU_Overall']
 shpcols = PATpy.GetSHPcols(shpfile)
 print shpcols
 # PATpy.RemoveSHPcols(shpfile, ['ISO3A', 'ISO3N', 'FIPS_1', 'CRESTA'])
@@ -39,7 +40,7 @@ print shpcols
 # print PATpy.CheckMissingSHPVals(csvfile,0, shpfile, 'RMS_CRESTA')
 
 
-PATpy.Join_CSV_to_SHP(csvfile, shpfile, shp_join_col, csvjoinindex, csvfieldindex)
+# PATpy.Join_CSV_to_SHP(csvfile, shpfile, shp_join_col, csvjoinindex, csvfieldindex)
 
 
 # missingresults2 = PATpy.CheckMissingSHPVals(csvfile,0, shpfile, 'JOIN')
@@ -47,7 +48,7 @@ PATpy.Join_CSV_to_SHP(csvfile, shpfile, shp_join_col, csvjoinindex, csvfieldinde
 # print missingresults2
 
 
-# mxdlist = PATpy.GetMXDList()[0]
+mxdlist = PATpy.GetMXDList()
 # print mxdlist
 
 # # PATpy.GetLayers(mxdlist)
@@ -58,5 +59,7 @@ PATpy.Join_CSV_to_SHP(csvfile, shpfile, shp_join_col, csvjoinindex, csvfieldinde
 # # ##PATpy.CreateMaps(mxdlist,lyr,mappingcols,"Diff_LC")
 # PATpy.CreateMaps(mxdlist,lyr,mappingcols,"Percent_Change")
 
+
+PATpy.CreateMaps2(mxdlist,shpfile1, shpfile,mappingcols,"Percent_Change")
 
 

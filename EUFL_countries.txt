@@ -1,2 +1,3 @@
 'GB','FR','BE','DE','CH','AT','CZ','PL','SK','HU'
+str(round(float([GU_Overall]),0)) + "%"
 UK, france, belgium, germany, switzerland, austria, czech republic, poland, slovakia, hungary
