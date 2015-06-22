@@ -277,6 +277,62 @@ def JoinSHP(jointable, joinfield, shapefile, shpjoinfield, add_fields):
     arcpy.JoinField_management(shapefile, shpjoinfield,jointable, joinfield, new_fields)
     print "Finished shapefile join."
 
+def (shapefile, shapejoincol, shapefile2, shapejoincol2, addcols):
+    """This function adds max and min values associated with shapefile 1 to shapefile2. If shapefile 1 has 3 postcodes in a county, this script will add the max and min value to shapefile 2 for that county. The value -9999 in a shpfile is treated as unknown rather than a minimum change."""
+    i= 0
+    for col in addcols:
+        addcols[i] = col[:10]
+        i +=1
+    i = 0
+    AddSHPcols(shapefile2, addcols, "STRING")
+    rows = arcpy.SearchCursor(shapefile)
+    shpvallist = []
+    joinlist = []
+    for row in rows:
+        vals = {}
+        vals[shapejoincol2] = int(row.getValue(shapejoincol2))
+        joinlist.append(vals[shapejoincol2])
+        for val in addcols:
+            vals[val] = float(row.getValue(val))
+        shpvallist.append(vals)
+
+    joinlist = set(joinlist)
+    coldict = {}
+    for col in addcols:
+        newdict = {}
+        for adminval in joinlist:
+            vals = []
+            for row in shpvallist:
+                if row[shapejoincol2] == adminval:
+                    if int(row[col]) == -9999: #use -9999 as a key for no data
+                        vals.append('')
+                    else:
+                        vals.append(row[col])
+            try:
+                maxval = max(v for v in vals if v <> '')
+            except:
+                maxval = "None"
+            try:
+                minval = min(vals)
+            except:
+                minval = "None"
+            maxval = str(int(round(maxval *100,0)))
+            minval = str(int(round(minval *100,0)))
+            newdict[adminval] = minval + "% to "+ maxval + "%"
+        coldict[col] = newdict
+
+    for col in addcols:
+        vals = coldict[col]
+        del rows
+        rows = arcpy.UpdateCursor(shapefile2)
+        for row in rows:
+            shpjoinval = int(row.getValue(shapejoincol2))
+            try:
+                row.setValue(str(col),str(vals[shpjoinval]))
+                rows.updateRow(row)
+            except:
+                pass
+
 def CheckMissingSHPVals(csvfile,joincol, shpfile, shpfileheader):
     """This script will check to see if any join column values in the CSV are missing in the shapefile. Returns a list of missing shapefile join data.CheckMissingSHPVals(csvfile should be a filepath. joincol is the column index in the csv starting at 0. shapefile is shapefile path. shapefile header should be the column lookup name.)"""
     csvvals = []
@@ -328,9 +384,13 @@ def GetLayers(mxds):
     else:
         print "The mxd needs to be formatted as a list, not a string. add brackets around the variable ['mxdpath']"
 
-def CreateMaps(mxds,shplyr,mapfields,symbology):
+def CreateMaps(mxds,shapefile, mapfields,symbology):
     """This function will create maps for all mxds specified and all fields in the mapfields list. The symbology options = 'Percent_Change' and 'Diff_LC'. If the symbology does not exist locally, this function will copy the necessary files from the network into the mxd\symbology folder. """
-
+    i= 0
+    for col in mapfields:
+        mapfields[i] = col[:10]
+        i +=1
+    i = 0
     if type(mxds) is str:
         newmxd = []
         newmxd.append(mxds)
@@ -353,17 +413,23 @@ def CreateMaps(mxds,shplyr,mapfields,symbology):
         mxdobj = arcpy.mapping.MapDocument(mxd)
         df = arcpy.mapping.ListDataFrames(mxdobj)[0] #leave as default for these maps(will it change for other perils????)
         for lyr in arcpy.mapping.ListLayers(mxdobj):
-            if lyr.name == shplyr: #leave as default for these maps(will it change for other perils????)
+            if lyr.name == os.path.basename(shapefile).replace(".shp",""): #leave as default for these maps(will it change for other perils????)
                 lyr.symbologyType == "GRADUATED_COLORS"
                 for field in mapfields:
                     arcpy.mapping.UpdateLayer(df, lyr, symbpath, True) #if you get a value error, it could be because of the layers source symbology no longer being available. It could also be because of a join issue or duplicate columns
                     lyr.symbology.valueField = field
                     arcpy.RefreshActiveView()
                     arcpy.mapping.ExportToJPEG(mxdobj, "C:\Mapping_Project\Out/"+ os.path.basename(mxd).rstrip('.mxd') +'_' + field + symbology +".jpg", resolution=mapresolution)
+                    print "New map: C:\Mapping_Project\Out/"+ os.path.basename(mxd).rstrip('.mxd') +'_' + field + symbology +".jpg"
 
 
 def CreateMaps2(mxds,shp1, shp2,  mapfields,symbology, labels1 = False,labels2 = False):
     """This function will create maps for all mxds specified and all fields in the mapfields list. The symbology options = 'Percent_Change' and 'Diff_LC'. If the symbology does not exist locally, this function will copy the necessary files from the network into the mxd\symbology folder. This function will show shplyr1's labels. The option expression field will update the labels. """
+
+    i= 0
+    for col in mapfields:
+        mapfields[i] = col[:10]
+        i +=1
 
     if type(mxds) is str:
         newmxd = []
@@ -434,6 +500,7 @@ def CreateMaps2(mxds,shp1, shp2,  mapfields,symbology, labels1 = False,labels2 =
 
             arcpy.RefreshActiveView()
             arcpy.mapping.ExportToJPEG(mxdobj, "C:\Mapping_Project\Out/"+ os.path.basename(mxd).rstrip('.mxd') +'_' + field + symbology +".jpg", resolution=mapresolution)
+            print "New map: C:\Mapping_Project\Out/"+ os.path.basename(mxd).rstrip('.mxd') +'_' + field + symbology +".jpg"
 
 
 
@@ -442,26 +509,3 @@ def CalculateField(shapefile, fieldname, py_expression):
     arcpy.CalculateField_management (shapefile, fieldname, py_expression,"Python")
 
 
-def SortShapefile():
-    """This script is not working. It can grab all of the values in the dbf, but not update them..."""
-    pass
-
-    #     fields = arcpy.ListFields(shpfile)
-    # # for field in fields:
-    # #     print field.name
-
-    # newlst = []
-    # rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (sort_field, method))
-    # for row in rows:
-    #     vals = []
-    #     for field in fields:
-    #         vals.append(row.getValue(field.name))
-    #     newlst.append(vals)
-
-    # rows = arcpy.UpdateCursor(shpfile,"","","","%s %s" % (sort_field, method))
-    # vals = newlst[0]
-    # for row in rows:
-    #     print row
-    #     print vals
-    #     rows.updateRow(vals[0])
-    #     vals = vals.next()
