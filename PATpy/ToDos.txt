@@ -8,3 +8,15 @@ To do:
 7) Waterfalls. Can we create a loop that automates good looking plots (excel style). Using python?
 8) EUFL diagnostic tool
 9) Python APIs?   Web automation?
+
+
+
+10) EUFL Europe wide: Major cities, rivers
+10a EUFL country wide: Max and min by Admin1. Minor rivers, Minor cities
+    10a1) Mix EUFL diff lc maps, but percent change labels.
+10b) EUFL sub region view. PErcent change by river postalcode11) TIV maps
+12) Loss Cost maps13) Exposure diagnostics
+    10b1) Mix EUFL diff lc maps, but percent change labels.
+11) TIV maps
+12) Loss Cost maps
+13) Exposure diagnostics

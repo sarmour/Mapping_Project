@@ -8,11 +8,98 @@ import operator
 PATpy = imp.load_source('PATpy', 'C:\Mapping_Project\PATpy\JoinFunctions.py')
 
 
-shpfile =  "C:\Mapping_Project\Shapefiles\RL13EUWS_PostCresta.shp"
-csvfile =  "C:\Mapping_Project\TestPC.csv"
+shpfile =  "C:\Mapping_Project\Shapefiles\EUFL_RL15_Zips.shp"
+shpfilemaxmin =  "C:\Mapping_Project\Shapefiles\EUFL_RL15_Admin1.shp"
 shp_join_col = "JOIN"
-csvjoinindex = 0
-csvfieldindex = 1
+shp_join_col2 = "Admin1ID"
+
+##########################JOIN OPTIONS######################################
+
+# cols = PATpy.GetSHPcols(shpfile)
+
+newcols = ['GU_Haz', 'GU_Vuln', 'GU_PLA_Win', 'GU_Overall']
+
+PATpy.AddSHPcols(shpfilemaxmin, newcols, "STRING")
+
+rows = arcpy.SearchCursor(shpfile)
+shpvallist = []
+joinlist = []
+for row in rows:
+
+        vals = {}
+        vals["Admin1ID"] = int(row.getValue("Admin1ID"))
+        joinlist.append(vals["Admin1ID"])
+        for val in newcols:
+                vals[val] = float(row.getValue(val))
+        shpvallist.append(vals)
+
+joinlist = set(joinlist)
+coldict = {}
+for col in newcols: #delete the one
+        newdict = {}
+        for adminval in joinlist:
+                vals = []
+                for row in shpvallist:
+                        if row["Admin1ID"] == adminval:
+                                if int(row[col]) == -9999:
+                                        vals.append('')
+                                else:
+                                        vals.append(row[col])
+                try:
+                        maxval = max(v for v in vals if v <> '')
+                except:
+                        maxval = "None"
+                try:
+                        minval = min(vals)
+                except:
+                        minval = "None"
+                maxval = str(int(round(maxval *100,0)))
+                minval = str(int(round(minval *100,0)))
+                #newdict[adminval] = "Max: " +maxval + "\% Min: "+ minval + "%"
+                newdict[adminval] = minval + "\% to "+ maxval + "%"
+        coldict[col] = newdict
+# print coldict.items()
+
+for col in newcols:
+        vals = coldict[col]
+        del rows
+        rows = arcpy.UpdateCursor(shpfilemaxmin)
+
+        for row in rows:
+                shpjoinval = int(row.getValue("Admin1ID"))
+                try:
+                        row.setValue(str(col),str(vals[shpjoinval]))
+                        rows.updateRow(row)
+                except:
+                    pass
+
+
+
+
+# PATpy.RemoveSHPcols(shpfile, ['ISO3A', 'ISO3N', 'FIPS_1', 'CRESTA'])
+# # PATpy.AddSHPcols(shpfile, "JOIN", "STRING")
+# PATpy.CalculateField(shpfile, "JOIN", "!RMSCODE! + '_' + str(!POST!)")
+
+# # jointable = PATpy.JoinCSV(csvfile, workspace)
+# PATpy.JoinSHP(jointable,"POSTCODE",shpfile,'RMS_CRESTA',mappingcols) #this process can take a while
+# print PATpy.CheckMissingSHPVals(csvfile,0, shpfile, 'RMS_CRESTA')
+
+
+# PATpy.Join_CSV_to_SHP(csvfile, shpfile, shp_join_col, csvjoinindex, csvfieldindex)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # cols = PATpy.GetCSVcols(csvfile)
 

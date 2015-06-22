@@ -245,13 +245,14 @@ def Join_CSV_to_SHP(csvfile, shapefile, shapefilejoincol, csvjoinindex, csvfield
                 row.setValue(str(field),float(vals[ind]))
                 rows.updateRow(row)
         except:
-            missingshpvals.append(shpjoinval) #This is the shapefile value that there is no corresponding CSV value for. This list is for debugging.
-    missingcsvvals = []
-    for l in csvjoinlist:
-        if l not in shpjoinlist:
-            missingcsvvals.append(l)
+            pass
+            # missingshpvals.append(shpjoinval) #This is the shapefile value that there is no corresponding CSV value for. This list is for debugging.
+    # missingcsvvals = []
+    # for l in csvjoinlist:
+    #     if l not in shpjoinlist:
+    #         missingcsvvals.append(l)
 
-    return missingcsvvals #these values are missing
+    return #missingcsvvals #these values are missing
 
 def JoinCSV(csvfile, workspace):
     """ This function will import the csv to the workspace. This datatable will then be imported to a shapefile using the JoinSHP() function. This returns a string of the workspace and table name"""
@@ -361,7 +362,7 @@ def CreateMaps(mxds,shplyr,mapfields,symbology):
                     arcpy.mapping.ExportToJPEG(mxdobj, "C:\Mapping_Project\Out/"+ os.path.basename(mxd).rstrip('.mxd') +'_' + field + symbology +".jpg", resolution=mapresolution)
 
 
-def CreateMaps2(mxds,shp1, shp2,mapfields,symbology):
+def CreateMaps2(mxds,shp1, shp2,  mapfields,symbology, labels1 = False,labels2 = False):
     """This function will create maps for all mxds specified and all fields in the mapfields list. The symbology options = 'Percent_Change' and 'Diff_LC'. If the symbology does not exist locally, this function will copy the necessary files from the network into the mxd\symbology folder. This function will show shplyr1's labels. The option expression field will update the labels. """
 
     if type(mxds) is str:
@@ -385,27 +386,52 @@ def CreateMaps2(mxds,shp1, shp2,mapfields,symbology):
     for mxd in mxds:
         mxdobj = arcpy.mapping.MapDocument(mxd)
         df = arcpy.mapping.ListDataFrames(mxdobj)[0] #leave as default for these maps(will it change for other perils????)
-        lyr1 = arcpy.mapping.Layer(shp1)
+
+        for lyr in arcpy.mapping.ListLayers(mxdobj):
+            if lyr.name == os.path.basename(shp1).replace(".shp",""):
+                lyr1 = lyr
+            elif lyr.name == os.path.basename(shp2).replace(".shp",""):
+                lyr2 = lyr
+
         lyr1.symbologyType == "GRADUATED_COLORS"
-        lyr2 = arcpy.mapping.Layer(shp1)
         lyr2.symbologyType == "GRADUATED_COLORS"
 
         for field in mapfields:
+            field = field [:10]
+            print os.path.basename(mxd).rstrip(".mxd"), field
             arcpy.mapping.UpdateLayer(df, lyr1, symbpath, True) #if you get a value error, it could be because of the layers source symbology no longer being available. It could also be because of a join issue or duplicate columns
-            lyr1.symbology.valueField = field
 
-            if lyr1.supports("LABELCLASSES"):
-                lyr1.showLabels = True
-            # print "Layer name: " + lyr1.name
-            for lblClass in lyr1.labelClasses:
-                if symbology.lower() == "percent_change":
-                    lblClass.expression = "str(round(float(["+field+"]),0)) + '%'"
-                    # print "    Class Name:  " + lblClass.className
-                    # print "    Expression:  " + lblClass.expression
-                    # print "    SQL Query:   " + lblClass.SQLQuery
+            if symbology.lower() == "percent_change":
+                expres = "str(int(round(float(["+field+"])*100,0))) + '%'"
+            elif symbology.lower() == "diff_lc":
+                expres = "str(int(round(float(["+field+"])*100,0)))"
+            else:
+                print "You need to pick a symbology."
+                return
+            lyr1.symbology.valueField = field
+            if labels1 == True:
+                if lyr1.supports("LABELCLASSES"):
+                    lyr1.showLabels = True
+                # print "Layer name: " + lyr1.name
+                    for lblClass in lyr1.labelClasses:
+                        lblClass.expression = expres
+                        lblClass.SQLQuery = field +" <> -9999"
+            else:
+                lyr1.showLabels = False
+
             arcpy.mapping.UpdateLayer(df, lyr2, symbpath, True)
             lyr2.symbology.valueField = field
-            lyr2.showLabels = False
+
+            if labels2 == True:
+                if lyr2.supports("LABELCLASSES"):
+                    lyr2.showLabels = True
+                # print "Layer name: " + lyr2.name
+                    for lblClass in lyr2.labelClasses:
+                        lblClass.expression = expres
+                        lblClass.SQLQuery = field +" <> -9999"
+            else:
+                lyr2.showLabels = False
+
             arcpy.RefreshActiveView()
             arcpy.mapping.ExportToJPEG(mxdobj, "C:\Mapping_Project\Out/"+ os.path.basename(mxd).rstrip('.mxd') +'_' + field + symbology +".jpg", resolution=mapresolution)
 

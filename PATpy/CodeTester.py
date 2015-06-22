@@ -28,7 +28,7 @@ csvfieldindex = 1
 csvcols = PATpy.GetCSVcols(csvfile)
 print csvcols
 
-mappingcols = ['GU_Haz', 'GU_Vuln', 'GU_PLA_Win', 'GU_Overall']
+mappingcols = ['GU_Haz', 'GU_Overall']
 shpcols = PATpy.GetSHPcols(shpfile)
 print shpcols
 # PATpy.RemoveSHPcols(shpfile, ['ISO3A', 'ISO3N', 'FIPS_1', 'CRESTA'])
@@ -49,7 +49,9 @@ print shpcols
 
 
 mxdlist = PATpy.GetMXDList()
-# print mxdlist
+print mxdlist
+EUmxds = ['C:\\Mapping_Project\\MXDs\\EUFL_Postcode.mxd']
+Othermxds = ['C:\\Mapping_Project\\MXDs\\EUFL_Postcode_Belgium.mxd']
 
 # # PATpy.GetLayers(mxdlist)
 
@@ -59,7 +61,10 @@ mxdlist = PATpy.GetMXDList()
 # # ##PATpy.CreateMaps(mxdlist,lyr,mappingcols,"Diff_LC")
 # PATpy.CreateMaps(mxdlist,lyr,mappingcols,"Percent_Change")
 
+#
+PATpy.CreateMaps2(EUmxds,shpfile, shpfile1, mappingcols,"Percent_Change")
 
-PATpy.CreateMaps2(mxdlist,shpfile1, shpfile,mappingcols,"Percent_Change")
+PATpy.CreateMaps2(Othermxds,shpfile, shpfile1, mappingcols,"Percent_Change", False, True)
+
 
 

@@ -1,3 +1,4 @@
 'GB','FR','BE','DE','CH','AT','CZ','PL','SK','HU'
 str(round(float([GU_Overall]),0)) + "%"
 UK, france, belgium, germany, switzerland, austria, czech republic, poland, slovakia, hungary
+"CITY_NAME"in('London','Paris','Brussels','Zurich','Luxembourg','Berlin','Vienna','Prague','Warsaw','Budapest','Bratislava')
