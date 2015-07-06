@@ -3,6 +3,7 @@
 *.mxd
 *.jpg
 *.csv
+*.pyc
 Shapefiles
 workspace.gdb
 Symbology
