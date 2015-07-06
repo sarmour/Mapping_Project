@@ -20,3 +20,5 @@ To do:
 11) TIV maps
 12) Loss Cost maps
 13) Exposure diagnostics
+
+14) Sub region max/min

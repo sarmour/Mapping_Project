@@ -1,9 +1,9 @@
-import imp
-import arcpy
-import os
-import sys
-import csv
-import operator
+import imp, arcpy, os,sys,csv, operator
 
 PATpy = imp.load_source('PATpy', 'C:\Mapping_Project\PATpy\JoinFunctions.py')
+
+
+
+
+
 
